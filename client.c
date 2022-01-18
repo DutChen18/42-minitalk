@@ -6,7 +6,7 @@
 /*   By: csteenvo <csteenvo@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/01/17 14:12:44 by csteenvo      #+#    #+#                 */
-/*   Updated: 2022/01/17 16:20:48 by csteenvo      ########   odam.nl         */
+/*   Updated: 2022/01/18 11:56:20 by csteenvo      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,24 +20,30 @@ static const char	*g_msg;
 static void
 	check(int code)
 {
-	if (code < 0)
+	if (!code)
 		exit(EXIT_FAILURE);
 }
 
 static void
 	send_next(int pid)
 {
-	static int		bit = 0;
-	static size_t	index = 0;
+	static int	bit_index = 0;
+	static int	end = 0;
+	int			bit;
 
-	if (g_msg[index] == '\0')
+	if (end)
 		exit(EXIT_SUCCESS);
-	if (g_msg[index] >> (7 - bit) & 1)
-		check(kill(pid, SIGUSR2));
+	bit = *g_msg >> bit_index & 1;
+	bit_index = (bit_index + 1) % 8;
+	if (bit_index == 0)
+	{
+		end = !*g_msg;
+		g_msg += 1;
+	}
+	if (bit)
+		check(kill(pid, SIGUSR2) == 0);
 	else
-		check(kill(pid, SIGUSR1));
-	bit = (bit + 1) % 8;
-	index += bit == 0;
+		check(kill(pid, SIGUSR1) == 0);
 }
 
 static void
@@ -54,14 +60,14 @@ int
 	struct sigaction	act;
 	int					pid;
 
-	(void) argc;
+	check(argc == 3);
 	pid = ft_atoi(argv[1]);
 	g_msg = argv[2];
 	sigemptyset(&act.sa_mask);
 	act.sa_sigaction = handler;
 	act.sa_flags = SA_SIGINFO | SA_NODEFER;
-	check(sigaction(SIGUSR1, &act, NULL));
+	check(sigaction(SIGUSR1, &act, NULL) == 0);
 	send_next(pid);
 	while (1)
-		pause();
+		;
 }

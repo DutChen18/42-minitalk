@@ -2,7 +2,7 @@ SRC_CLIENT=client.c
 SRC_SERVER=server.c
 OBJ_CLIENT=$(SRC_CLIENT:.c=.o)
 OBJ_SERVER=$(SRC_SERVER:.c=.o)
-CFLAGS=-Wall -Wextra -Werror -Og -g -fsanitize=address
+CFLAGS=-Wall -Wextra -Werror -O3
 NAME=client server
 
 all: $(NAME)
