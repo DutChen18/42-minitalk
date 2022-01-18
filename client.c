@@ -6,7 +6,7 @@
 /*   By: csteenvo <csteenvo@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/01/17 14:12:44 by csteenvo      #+#    #+#                 */
-/*   Updated: 2022/01/18 11:56:20 by csteenvo      ########   odam.nl         */
+/*   Updated: 2022/01/18 13:50:02 by csteenvo      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,29 +28,20 @@ static void
 	send_next(int pid)
 {
 	static int	bit_index = 0;
-	static int	end = 0;
 	int			bit;
 
-	if (end)
+	if (!*g_msg)
 		exit(EXIT_SUCCESS);
-	bit = *g_msg >> bit_index & 1;
+	bit = *g_msg >> (7 - bit_index) & 1;
 	bit_index = (bit_index + 1) % 8;
-	if (bit_index == 0)
-	{
-		end = !*g_msg;
-		g_msg += 1;
-	}
-	if (bit)
-		check(kill(pid, SIGUSR2) == 0);
-	else
-		check(kill(pid, SIGUSR1) == 0);
+	g_msg += bit_index == 0;
+	check(kill(pid, SIGUSR1 + bit) == 0);
 }
 
 static void
 	handler(int sig, siginfo_t *info, void *ctx)
 {
-	(void) sig;
-	(void) ctx;
+	(void) sig, (void) ctx;
 	send_next(info->si_pid);
 }
 
@@ -69,5 +60,5 @@ int
 	check(sigaction(SIGUSR1, &act, NULL) == 0);
 	send_next(pid);
 	while (1)
-		;
+		pause();
 }

@@ -6,7 +6,7 @@
 /*   By: csteenvo <csteenvo@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/01/17 14:12:59 by csteenvo      #+#    #+#                 */
-/*   Updated: 2022/01/18 11:56:05 by csteenvo      ########   odam.nl         */
+/*   Updated: 2022/01/18 13:50:36 by csteenvo      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,33 +25,14 @@ static void
 static void
 	handler(int sig, siginfo_t *info, void *ctx)
 {
-	static char	buf[65536];
-	static char	*ptr = buf;
-	static int	bit = 0;
+	static char	byte = 0;
+	static int	bit_index = 0;
 
 	(void) ctx;
-	if (sig == SIGUSR2)
-		*ptr |= 1 << bit;
-	else
-		*ptr &= ~(1 << bit);
-	bit = (bit + 1) % 8;
-	if (bit == 0)
-	{
-		if (!*ptr)
-		{
-			write(STDOUT_FILENO, buf, ptr - buf);
-			ptr = buf;
-		}
-		else if (ptr == buf + sizeof(buf) - 1)
-		{
-			write(STDOUT_FILENO, buf, sizeof(buf));
-			ptr = buf;
-		}
-		else
-		{
-			ptr += 1;
-		}
-	}
+	byte = byte << 1 | sig - SIGUSR1;
+	bit_index = (bit_index + 1) % 8;
+	if (bit_index == 0)
+		ft_putchar_fd(byte, STDOUT_FILENO);
 	check(kill(info->si_pid, SIGUSR1) == 0);
 }
 
@@ -69,5 +50,5 @@ int
 	ft_putnbr_fd(getpid(), STDERR_FILENO);
 	ft_putchar_fd('\n', STDERR_FILENO);
 	while (1)
-		;
+		pause();
 }

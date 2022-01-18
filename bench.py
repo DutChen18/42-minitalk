@@ -1,6 +1,8 @@
 import asyncio
 import sys
 import time
+import string
+import random
 
 async def run(text_in):
 	server = await asyncio.create_subprocess_exec(
@@ -18,12 +20,13 @@ async def run(text_in):
 	return text_out
 
 async def main():
-	text_in = sys.stdin.read().encode()
+	length = int(sys.argv[1])
+	text_in = "".join(random.choice(string.printable) for _ in range(length))
 	start = time.time()
 	text_out = await run(text_in)
 	delta = time.time() - start
 
-	if text_in == text_out:
+	if text_in.encode() == text_out:
 		kbps = int(len(text_in) / delta * 8 / 1024)
 		print(f"ok {kbps} Kbps")
 	else:
