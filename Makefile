@@ -21,8 +21,10 @@ libft/libft.a:
 
 clean:
 	rm -f $(OBJ_CLIENT) $(OBJ_SERVER)
+	make -C libft clean
 
 fclean: clean
 	rm -f client server
+	make -C libft fclean
 
 re: fclean all
